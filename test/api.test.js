@@ -42,6 +42,13 @@ test('GET / serves the dashboard HTML', async () => {
   assert.match(response.text, /<title>Trenton Flames AI Scout<\/title>/);
 });
 
+test('GET /dashboard serves the dashboard HTML fallback', async () => {
+  const response = await request(app).get('/dashboard').expect(200);
+
+  assert.match(response.headers['content-type'], /text\/html/);
+  assert.match(response.text, /Trenton Flames AI Scout/);
+});
+
 test('GET /api/prospects returns sorted prospect list in demo mode', async () => {
   const response = await request(app).get('/api/prospects').expect(200);
 

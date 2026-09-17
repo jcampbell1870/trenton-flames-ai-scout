@@ -183,6 +183,14 @@ app.get('/api/prospects', (req, res) => {
 app.post('/api/query', handleProspectResearch);
 app.post('/api/research/prospect', handleProspectResearch);
 
+app.get(/^\/(?!api(?:\/|$)).*/, (_req, res, next) => {
+  res.sendFile(path.join(frontendRoot, 'index.html'), (error) => {
+    if (error) {
+      next(error);
+    }
+  });
+});
+
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
