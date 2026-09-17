@@ -1,0 +1,144 @@
+:root {
+  color-scheme: light;
+  --bg: #141414;
+  --bg-panel: #232323;
+  --text: #f6f6f6;
+  --muted: #d7cbc7;
+  --accent: #f94144;
+  --accent-alt: #f3722c;
+  --border: #3b3b3b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: linear-gradient(180deg, #2b0f0f, var(--bg));
+  color: var(--text);
+}
+
+main,
+.hero {
+  width: min(1100px, 92vw);
+  margin: 0 auto;
+}
+
+.hero {
+  padding: 2rem 0 1rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #ffd1c3;
+  margin: 0;
+}
+
+h1,
+h2 {
+  margin: 0.35rem 0;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.controls {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #5e4d47;
+  background: #1b1b1b;
+  color: var(--text);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card {
+  background: #1b1b1b;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.card h3 {
+  margin: 0;
+}
+
+.meta,
+.score-grid {
+  margin-top: 0.6rem;
+}
+
+.meta,
+.subtle {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.fit-pill {
+  display: inline-block;
+  margin-top: 0.65rem;
+  background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-weight: 700;
+}
+
+.tag {
+  display: inline-block;
+  margin-top: 0.5rem;
+  border: 1px solid #f59d7d;
+  color: #ffd1c3;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+details {
+  margin-top: 0.7rem;
+}
+
+a {
+  color: #ffd1c3;
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding-top: 1.2rem;
+  }
+}
