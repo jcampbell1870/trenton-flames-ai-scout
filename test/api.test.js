@@ -33,6 +33,8 @@ test('GET /api/status returns backend status alias', async () => {
   assert.equal(response.body.status, 'ok');
   assert.equal(response.body.demoMode, true);
   assert.equal(response.body.provider, 'not-configured');
+  assert.ok(Array.isArray(response.body.researchSources));
+  assert.equal(response.body.researchSources[0].type, 'facebook');
 });
 
 test('GET /api/status allows configured cross-origin browser requests', async () => {
@@ -78,6 +80,8 @@ test('GET /api/prospects returns sorted prospect list in demo mode', async () =>
 
   assert.equal(response.body.demoMode, true);
   assert.ok(Array.isArray(response.body.data));
+  assert.ok(Array.isArray(response.body.researchSources));
+  assert.ok(Array.isArray(response.body.researchChecklist));
   assert.ok(response.body.data.length >= 1);
   assert.equal(response.body.data[0].fitScore >= response.body.data.at(-1).fitScore, true);
 });
@@ -120,5 +124,62 @@ test('POST /api/query mirrors the safe research response contract', async () => 
   assert.equal(response.body.demoMode, true);
   assert.equal(response.body.hasApiKeyConfigured, false);
   assert.ok(Array.isArray(response.body.results));
+  assert.ok(Array.isArray(response.body.teamResearchSources));
+  assert.ok(Array.isArray(response.body.researchChecklist));
   assert.match(response.body.source, /Demo fallback/);
+});
+
+test('POST /api/query includes configured Facebook page source metadata', async () => {
+  process.env.TEAM_FACEBOOK_PAGE_URL = 'https://www.facebook.com/trentonflames';
+
+  try {
+    const response = await request(app).post('/api/query').send({ query: 'Trenton' }).expect(200);
+
+    assert.equal(response.body.teamResearchSources[0].configured, true);
+    assert.equal(response.body.teamResearchSources[0].url, 'https://www.facebook.com/trentonflames');
+  } finally {
+    delete process.env.TEAM_FACEBOOK_PAGE_URL;
+  }
+});
+
+test('POST /api/query ignores invalid Facebook page URLs', async () => {
+  process.env.TEAM_FACEBOOK_PAGE_URL = 'www.facebook.com/trentonflames';
+
+  try {
+    const response = await request(app).post('/api/query').send({ query: 'Trenton' }).expect(200);
+
+    assert.equal(response.body.teamResearchSources[0].configured, false);
+    assert.equal(response.body.teamResearchSources[0].url, null);
+    assert.match(response.body.teamResearchSources[0].note, /full http\(s\).*Facebook URL/);
+  } finally {
+    delete process.env.TEAM_FACEBOOK_PAGE_URL;
+  }
+});
+
+test('POST /api/query ignores non-Facebook external URLs', async () => {
+  process.env.TEAM_FACEBOOK_PAGE_URL = 'https://evil.example/phish';
+
+  try {
+    const response = await request(app).post('/api/query').send({ query: 'Trenton' }).expect(200);
+
+    assert.equal(response.body.teamResearchSources[0].configured, false);
+    assert.equal(response.body.teamResearchSources[0].url, null);
+    assert.match(response.body.teamResearchSources[0].note, /Facebook URL/);
+  } finally {
+    delete process.env.TEAM_FACEBOOK_PAGE_URL;
+  }
+});
+
+test('POST /api/query ignores Facebook redirector URLs', async () => {
+  process.env.TEAM_FACEBOOK_PAGE_URL = 'https://l.facebook.com/l.php?u=https://evil.example';
+
+  try {
+    const response = await request(app).post('/api/query').send({ query: 'Trenton' }).expect(200);
+
+    assert.equal(response.body.teamResearchSources[0].configured, false);
+    assert.equal(response.body.teamResearchSources[0].url, null);
+    assert.match(response.body.teamResearchSources[0].note, /Facebook URL/);
+  } finally {
+    delete process.env.TEAM_FACEBOOK_PAGE_URL;
+  }
 });

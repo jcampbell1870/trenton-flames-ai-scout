@@ -9,7 +9,25 @@ const state = {
   sort: 'desc',
   demoMode: true,
   loading: true,
-  error: ''
+  error: '',
+  researchSources: [
+    {
+      id: 'trenton-flames-facebook',
+      type: 'facebook',
+      name: 'Trenton Flames Facebook Page',
+      url: null,
+      configured: false,
+      requiredForPlayerResearch: true,
+      description:
+        'Use the official team Facebook page for roster updates, prospect mentions, tryout context, and public team signals.',
+      note: 'Configure the backend TEAM_FACEBOOK_PAGE_URL to publish the official page link here.'
+    }
+  ],
+  researchChecklist: [
+    'Check the Trenton Flames Facebook page for recent public player mentions, tryout notes, and roster context.',
+    'Validate all Facebook-derived signals against trusted league-approved sources before making decisions.',
+    'Do not treat demo prospects or social posts alone as verified scouting records.'
+  ]
 };
 
 const searchInput = document.querySelector('#search');
@@ -18,6 +36,7 @@ const sortSelect = document.querySelector('#sort');
 const list = document.querySelector('#prospect-list');
 const dataMode = document.querySelector('#data-mode');
 const sourceNote = document.querySelector('#source-note');
+const researchSources = document.querySelector('#research-sources');
 
 function renderPositionOptions(items) {
   const positions = [...new Set(items.map((item) => item.position))].sort();
@@ -47,7 +66,7 @@ function appendLabeledText(container, label, value) {
 
 function toSafeExternalUrl(url) {
   try {
-    const parsed = new URL(url, window.location.href);
+    const parsed = new URL(url);
     return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : null;
   } catch {
     return null;
@@ -72,6 +91,55 @@ function getFilteredData() {
   }
 
   return items.sort((a, b) => (state.sort === 'asc' ? a.fitScore - b.fitScore : b.fitScore - a.fitScore));
+}
+
+function renderResearchSources() {
+  researchSources.textContent = '';
+
+  state.researchSources.forEach((item) => {
+    const article = document.createElement('article');
+    article.className = 'panel source-card';
+
+    const heading = document.createElement('h3');
+    heading.textContent = item.name;
+    article.append(heading);
+
+    const meta = document.createElement('p');
+    meta.className = 'meta';
+    meta.textContent = `${item.type} · ${item.configured ? 'configured' : 'needs configuration'}`;
+    article.append(meta);
+
+    const description = document.createElement('p');
+    description.textContent = item.description || 'No description provided.';
+    article.append(description);
+
+    const note = document.createElement('p');
+    note.className = 'subtle';
+    note.textContent = item.note || '';
+    article.append(note);
+
+    const safeSourceUrl = item.url ? toSafeExternalUrl(item.url) : null;
+    if (safeSourceUrl) {
+      const link = document.createElement('a');
+      link.href = safeSourceUrl;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.textContent = 'Open source';
+      article.append(link);
+    }
+
+    if (Array.isArray(state.researchChecklist) && state.researchChecklist.length > 0) {
+      const list = document.createElement('ul');
+      state.researchChecklist.forEach((step) => {
+        const bullet = document.createElement('li');
+        bullet.textContent = step;
+        list.append(bullet);
+      });
+      article.append(list);
+    }
+
+    researchSources.append(article);
+  });
 }
 
 function renderProspects() {
@@ -206,6 +274,8 @@ function renderProspects() {
     article.append(details);
     list.append(article);
   });
+
+  renderResearchSources();
 }
 
 async function tryLoadApiData() {
@@ -225,6 +295,10 @@ async function tryLoadApiData() {
     state.prospects = body.data;
     state.source = body.source || `Render/API data (${endpoint})`;
     state.demoMode = Boolean(body.demoMode);
+    state.researchSources = Array.isArray(body.researchSources) ? body.researchSources : state.researchSources;
+    state.researchChecklist = Array.isArray(body.researchChecklist)
+      ? body.researchChecklist
+      : state.researchChecklist;
     resetPositionOptions(state.prospects);
     state.error = '';
   } catch (error) {

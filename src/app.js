@@ -6,6 +6,7 @@ const { prospects } = require('./data/prospects');
 const app = express();
 const frontendRoot = path.resolve(__dirname, '..', 'frontend');
 const positions = [...new Set(prospects.map((prospect) => prospect.position))].sort();
+const defaultFacebookPageName = 'Trenton Flames Facebook Page';
 
 const parseCorsOrigins = (originsRaw) => {
   const defaults = ['http://localhost:3000', 'http://127.0.0.1:3000'];
@@ -24,6 +25,19 @@ const rateLimitState = new Map();
 
 const isLoopbackAddress = (value) =>
   ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes((value || '').trim());
+
+const toPublicHttpUrl = (value) => {
+  try {
+    const parsed = new URL(value);
+    const allowedFacebookHosts = new Set(['facebook.com', 'www.facebook.com', 'm.facebook.com']);
+    const hasAllowedProtocol = ['http:', 'https:'].includes(parsed.protocol);
+    const hasAllowedHost = allowedFacebookHosts.has(parsed.hostname.toLowerCase());
+    const isRedirectPath = parsed.pathname === '/l.php';
+    return hasAllowedProtocol && hasAllowedHost && !isRedirectPath ? parsed.href : null;
+  } catch {
+    return null;
+  }
+};
 
 const hasTrustedSameOriginReferer = (req) => {
   const referer = req.get('referer');
@@ -77,8 +91,39 @@ const getHealthPayload = () => ({
 const getStatusPayload = () => ({
   status: 'ok',
   demoMode: !process.env.AI_RESEARCH_API_KEY,
-  provider: process.env.AI_RESEARCH_PROVIDER || 'not-configured'
+  provider: process.env.AI_RESEARCH_PROVIDER || 'not-configured',
+  researchSources: getTeamResearchSources()
 });
+
+const getTeamResearchSources = () => {
+  const facebookPageUrl = (process.env.TEAM_FACEBOOK_PAGE_URL || '').trim();
+  const validatedFacebookPageUrl = toPublicHttpUrl(facebookPageUrl);
+  const facebookPageName = (process.env.TEAM_FACEBOOK_PAGE_NAME || '').trim() || defaultFacebookPageName;
+
+  return [
+    {
+      id: 'trenton-flames-facebook',
+      type: 'facebook',
+      name: facebookPageName,
+      url: validatedFacebookPageUrl,
+      configured: Boolean(validatedFacebookPageUrl),
+      requiredForPlayerResearch: true,
+      description:
+        'Use the official team Facebook page for roster updates, prospect mentions, tryout context, and public team signals.',
+      note: validatedFacebookPageUrl
+        ? 'Review recent team posts alongside league-approved sources before decisions.'
+        : facebookPageUrl
+          ? 'TEAM_FACEBOOK_PAGE_URL must be a full http(s) Facebook URL to publish the official team Facebook page.'
+        : 'Configure TEAM_FACEBOOK_PAGE_URL to link the official team Facebook page in deployed research responses.'
+    }
+  ];
+};
+
+const getResearchChecklist = () => [
+  'Check the Trenton Flames Facebook page for recent public player mentions, tryout notes, and roster context.',
+  'Validate all Facebook-derived signals against trusted league-approved sources before making decisions.',
+  'Do not treat demo prospects or social posts alone as verified scouting records.'
+];
 
 const applyRateLimit = (req, res, { windowMs, maxRequests }) => {
   const key = req.ip || req.socket?.remoteAddress || 'unknown';
@@ -110,6 +155,7 @@ const handleProspectResearch = (req, res) => {
   const normalizedPosition = typeof position === 'string' ? position.trim().toUpperCase() : null;
   const provider = process.env.AI_RESEARCH_PROVIDER || 'not-configured';
   const hasApiKeyConfigured = Boolean(process.env.AI_RESEARCH_API_KEY);
+  const teamResearchSources = getTeamResearchSources();
 
   const matched = prospects
     .filter((prospect) => {
@@ -134,6 +180,8 @@ const handleProspectResearch = (req, res) => {
     source: hasApiKeyConfigured
       ? 'Live provider integration not enabled in this template; returning transparent demo-format response.'
       : 'Demo fallback: no AI research API key configured.',
+    teamResearchSources,
+    researchChecklist: getResearchChecklist(),
     disclaimer:
       'Results are sample scouting outputs and must be validated against trusted league-approved sources before decisions.',
     results: matched.map((prospect) => ({
@@ -243,6 +291,8 @@ app.get('/api/prospects', (req, res) => {
     },
     demoMode: true,
     source: 'Seeded Trenton Flames demo prospects (fictional sample data)',
+    researchSources: getTeamResearchSources(),
+    researchChecklist: getResearchChecklist(),
     data: sorted
   });
 });

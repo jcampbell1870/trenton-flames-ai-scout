@@ -15,3 +15,7 @@ services:
         sync: false
       - key: AI_RESEARCH_API_KEY
         sync: false
+      - key: TEAM_FACEBOOK_PAGE_NAME
+        value: Trenton Flames Facebook Page
+      - key: TEAM_FACEBOOK_PAGE_URL
+        sync: false

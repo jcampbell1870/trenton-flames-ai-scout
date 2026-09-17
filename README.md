@@ -54,6 +54,8 @@ See `.env.example`.
 - `CORS_ORIGIN` comma-separated allowed browser origins
 - `AI_RESEARCH_PROVIDER` optional provider label
 - `AI_RESEARCH_API_KEY` optional secret for future live integrations
+- `TEAM_FACEBOOK_PAGE_NAME` display name for the official Trenton Flames Facebook source
+- `TEAM_FACEBOOK_PAGE_URL` full official Trenton Flames `facebook.com` page URL used in research responses
 
 Never commit secrets.
 
@@ -101,7 +103,7 @@ Health payload with service, franchise, league, and timestamp metadata.
 
 ### `GET /status` and `GET /api/status`
 
-Status payload exposing whether the service is currently in demo mode and whether an AI research provider label is configured.
+Status payload exposing whether the service is currently in demo mode, whether an AI research provider label is configured, and which team research sources are enabled.
 
 ### `GET /api/prospects`
 
@@ -129,6 +131,8 @@ If `AI_RESEARCH_API_KEY` is not configured, the API still returns a transparent 
 - `demoMode: true`
 - `hasApiKeyConfigured: false`
 - explicit source wording showing demo fallback
+- `teamResearchSources` metadata including the Trenton Flames Facebook page when configured
+- `researchChecklist` reminding scouts to review official team Facebook posts alongside trusted league sources
 - a reminder that results must be validated before decisions
 
 ## Frontend dashboard
@@ -139,6 +143,7 @@ The Pages frontend under `frontend/` includes:
 - prospect search and filters
 - loading, empty, and API-fallback error states
 - scouting cards with fit score, confidence, source, notes, and references
+- a research-source panel that highlights the Trenton Flames Facebook page as part of the scouting workflow
 - clear demo-data and verification disclaimers
 
 ### API base URL configuration
@@ -162,8 +167,9 @@ The Pages frontend under `frontend/` includes:
 2. Confirm Render detects `render.yaml`.
 3. Verify the service uses the Node runtime and the commands above.
 4. Set `CORS_ORIGIN` to your allowed browser origin list. For GitHub Pages project sites this will be the shared `https://<account>.github.io` host, unless you use a dedicated custom domain.
-5. Optionally add `AI_RESEARCH_PROVIDER` and `AI_RESEARCH_API_KEY`.
-6. Deploy and note the resulting Render URL, for example `https://trenton-flames-ai-scout-api.onrender.com`.
+5. Set `TEAM_FACEBOOK_PAGE_URL` to the official Trenton Flames Facebook page URL and adjust `TEAM_FACEBOOK_PAGE_NAME` if needed.
+6. Optionally add `AI_RESEARCH_PROVIDER` and `AI_RESEARCH_API_KEY`.
+7. Deploy and note the resulting Render URL, for example `https://trenton-flames-ai-scout-api.onrender.com`.
 
 ## GitHub Pages setup
 
@@ -186,5 +192,6 @@ The workflow runs `npm ci`, builds `dist/`, writes a `.nojekyll` file for Pages-
 ## Operational notes
 
 - Review confidence, notes, and source labels before using any output.
+- Include the official Trenton Flames Facebook page in player research review before acting on public team signals.
 - The current research endpoints are safe template endpoints, not a verified live scouting intelligence system.
 - If you later add a real provider, keep the current transparent demo fallback and do not present unverified outputs as confirmed player facts.

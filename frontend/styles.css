@@ -80,11 +80,21 @@ select {
   margin-bottom: 1rem;
 }
 
+.research-sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
 .card {
   background: #1b1b1b;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem;
+}
+
+.source-card {
+  margin-bottom: 0;
 }
 
 .card h3 {
