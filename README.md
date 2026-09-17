@@ -57,6 +57,10 @@ See `.env.example`.
 - `TEAM_FACEBOOK_PAGE_NAME` display name for the official Trenton Flames Facebook source
 - `TEAM_FACEBOOK_PAGE_URL` full official Trenton Flames `facebook.com` page URL used in research responses
 
+Default official Facebook page:
+
+- `https://www.facebook.com/p/Trenton-Flames-61579453380039/`
+
 Never commit secrets.
 
 > Note: GitHub Pages project sites share the host origin `https://<account>.github.io` across repositories. If you deploy the frontend as a Pages project site, CORS can only allow that host, not a repository subpath. Use a dedicated frontend domain if you need stricter browser-origin isolation.
@@ -167,7 +171,7 @@ The Pages frontend under `frontend/` includes:
 2. Confirm Render detects `render.yaml`.
 3. Verify the service uses the Node runtime and the commands above.
 4. Set `CORS_ORIGIN` to your allowed browser origin list. For GitHub Pages project sites this will be the shared `https://<account>.github.io` host, unless you use a dedicated custom domain.
-5. Set `TEAM_FACEBOOK_PAGE_URL` to the official Trenton Flames Facebook page URL and adjust `TEAM_FACEBOOK_PAGE_NAME` if needed.
+5. `TEAM_FACEBOOK_PAGE_URL` defaults to the official Trenton Flames Facebook page (`https://www.facebook.com/p/Trenton-Flames-61579453380039/`). Adjust it only if the official page changes, and update `TEAM_FACEBOOK_PAGE_NAME` if needed.
 6. Optionally add `AI_RESEARCH_PROVIDER` and `AI_RESEARCH_API_KEY`.
 7. Deploy and note the resulting Render URL, for example `https://trenton-flames-ai-scout-api.onrender.com`.
 

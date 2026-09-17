@@ -35,6 +35,11 @@ test('GET /api/status returns backend status alias', async () => {
   assert.equal(response.body.provider, 'not-configured');
   assert.ok(Array.isArray(response.body.researchSources));
   assert.equal(response.body.researchSources[0].type, 'facebook');
+  assert.equal(
+    response.body.researchSources[0].url,
+    'https://www.facebook.com/p/Trenton-Flames-61579453380039/'
+  );
+  assert.equal(response.body.researchSources[0].configured, true);
 });
 
 test('GET /api/status allows configured cross-origin browser requests', async () => {
@@ -127,6 +132,10 @@ test('POST /api/query mirrors the safe research response contract', async () => 
   assert.ok(Array.isArray(response.body.teamResearchSources));
   assert.ok(Array.isArray(response.body.researchChecklist));
   assert.match(response.body.source, /Demo fallback/);
+  assert.equal(
+    response.body.teamResearchSources[0].url,
+    'https://www.facebook.com/p/Trenton-Flames-61579453380039/'
+  );
 });
 
 test('POST /api/query includes configured Facebook page source metadata', async () => {

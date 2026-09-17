@@ -7,6 +7,7 @@ const app = express();
 const frontendRoot = path.resolve(__dirname, '..', 'frontend');
 const positions = [...new Set(prospects.map((prospect) => prospect.position))].sort();
 const defaultFacebookPageName = 'Trenton Flames Facebook Page';
+const defaultFacebookPageUrl = 'https://www.facebook.com/p/Trenton-Flames-61579453380039/';
 
 const parseCorsOrigins = (originsRaw) => {
   const defaults = ['http://localhost:3000', 'http://127.0.0.1:3000'];
@@ -96,8 +97,9 @@ const getStatusPayload = () => ({
 });
 
 const getTeamResearchSources = () => {
-  const facebookPageUrl = (process.env.TEAM_FACEBOOK_PAGE_URL || '').trim();
-  const validatedFacebookPageUrl = toPublicHttpUrl(facebookPageUrl);
+  const configuredFacebookPageUrl =
+    (process.env.TEAM_FACEBOOK_PAGE_URL || '').trim() || defaultFacebookPageUrl;
+  const validatedFacebookPageUrl = toPublicHttpUrl(configuredFacebookPageUrl);
   const facebookPageName = (process.env.TEAM_FACEBOOK_PAGE_NAME || '').trim() || defaultFacebookPageName;
 
   return [
@@ -112,7 +114,7 @@ const getTeamResearchSources = () => {
         'Use the official team Facebook page for roster updates, prospect mentions, tryout context, and public team signals.',
       note: validatedFacebookPageUrl
         ? 'Review recent team posts alongside league-approved sources before decisions.'
-        : facebookPageUrl
+        : configuredFacebookPageUrl
           ? 'TEAM_FACEBOOK_PAGE_URL must be a full http(s) Facebook URL to publish the official team Facebook page.'
         : 'Configure TEAM_FACEBOOK_PAGE_URL to link the official team Facebook page in deployed research responses.'
     }

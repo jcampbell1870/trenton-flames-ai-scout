@@ -15,12 +15,12 @@ const state = {
       id: 'trenton-flames-facebook',
       type: 'facebook',
       name: 'Trenton Flames Facebook Page',
-      url: null,
-      configured: false,
+      url: 'https://www.facebook.com/p/Trenton-Flames-61579453380039/',
+      configured: true,
       requiredForPlayerResearch: true,
       description:
         'Use the official team Facebook page for roster updates, prospect mentions, tryout context, and public team signals.',
-      note: 'Configure the backend TEAM_FACEBOOK_PAGE_URL to publish the official page link here.'
+      note: 'Review recent team posts alongside league-approved sources before decisions.'
     }
   ],
   researchChecklist: [

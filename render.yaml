@@ -18,4 +18,4 @@ services:
       - key: TEAM_FACEBOOK_PAGE_NAME
         value: Trenton Flames Facebook Page
       - key: TEAM_FACEBOOK_PAGE_URL
-        sync: false
+        value: https://www.facebook.com/p/Trenton-Flames-61579453380039/
