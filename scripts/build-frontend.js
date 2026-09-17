@@ -10,9 +10,16 @@ fs.cpSync(source, destination, { recursive: true });
 
 const configuredApiBaseUrl = (process.env.API_BASE_URL || '').trim();
 if (configuredApiBaseUrl) {
+  const serializedConfig = JSON.stringify(
+    {
+      apiBaseUrl: configuredApiBaseUrl
+    },
+    null,
+    2
+  );
   fs.writeFileSync(
     path.join(destination, 'config.js'),
-    `window.TRENTON_FLAMES_CONFIG = {\n  apiBaseUrl: '${configuredApiBaseUrl.replace(/'/g, "\\'")}'\n};\n`
+    `window.TRENTON_FLAMES_CONFIG = ${serializedConfig};\n`
   );
 }
 
