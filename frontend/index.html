@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trenton Flames AI Scout</title>
+    <meta
+      name="description"
+      content="Trenton Flames AI-assisted prospect research dashboard for Nova Scotia Hockey League roster planning."
+    />
+    <script>
+      (function configureAssetBase() {
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        const isGithubPagesHost = /^([a-z0-9-]+)\.github\.io$/i.test(window.location.hostname);
+        const assetBase =
+          isGithubPagesHost && pathSegments.length > 0 ? `/${pathSegments[0]}/` : '/';
+        window.TRENTON_FLAMES_ASSET_BASE = assetBase;
+        const stylesheet = document.createElement('link');
+        stylesheet.rel = 'stylesheet';
+        stylesheet.href = new URL('styles.css', `${window.location.origin}${assetBase}`).toString();
+        document.head.append(stylesheet);
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="hero">
+      <p class="eyebrow">Trenton Flames Hockey Operations</p>
+      <h1>Trenton Flames AI Scout</h1>
+      <p>
+        AI-assisted prospect research dashboard for the future Trenton Flames franchise in Trenton,
+        Nova Scotia, Canada.
+      </p>
+      <p class="subtle">Intended league: Nova Scotia Hockey League.</p>
+    </header>
+
+    <main>
+      <section class="panel controls" aria-label="Prospect filters">
+        <div>
+          <label for="search">Search prospects</label>
+          <input id="search" type="search" placeholder="Name, team, location, position" />
+        </div>
+        <div>
+          <label for="position">Position</label>
+          <select id="position">
+            <option value="">All positions</option>
+          </select>
+        </div>
+        <div>
+          <label for="sort">Sort fit score</label>
+          <select id="sort">
+            <option value="desc">Highest fit first</option>
+            <option value="asc">Lowest fit first</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="panel status" aria-live="polite">
+        <strong id="data-mode">Loading prospects…</strong>
+        <p id="source-note" class="subtle"></p>
+      </section>
+
+      <section class="panel" aria-label="Research sources">
+        <h2>Research workflow sources</h2>
+        <p class="subtle">
+          Player research should include official Trenton Flames channels alongside league-approved
+          verification sources.
+        </p>
+        <div id="research-sources" class="research-sources"></div>
+      </section>
+
+      <section id="prospect-list" class="cards" aria-label="Prospect list"></section>
+
+      <section class="panel disclaimer">
+        <h2>Data and verification notice</h2>
+        <p>
+          Profiles labelled as <strong>Demo</strong> are fictional sample prospects for interface and
+          workflow testing. They are not verified real-world player records.
+        </p>
+        <p>
+          Any live scouting conclusions should be verified with trusted sources, in-person scouting,
+          consent/privacy safeguards, and league policy checks.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      (function loadAppAssets() {
+        const assetBase = window.TRENTON_FLAMES_ASSET_BASE || '/';
+        ['data/prospects.js', 'config.js', 'app.js'].forEach((assetPath) => {
+          const script = document.createElement('script');
+          script.src = new URL(assetPath, `${window.location.origin}${assetBase}`).toString();
+          script.async = false;
+          document.body.append(script);
+        });
+      })();
+    </script>
+  </body>
+</html>

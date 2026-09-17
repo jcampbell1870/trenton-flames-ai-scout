@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: trenton-flames-ai-scout-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: CORS_ORIGIN
+        sync: false
+      - key: AI_RESEARCH_PROVIDER
+        sync: false
+      - key: AI_RESEARCH_API_KEY
+        sync: false
+      - key: TEAM_FACEBOOK_PAGE_NAME
+        value: Trenton Flames Facebook Page
+      - key: TEAM_FACEBOOK_PAGE_URL
+        value: https://www.facebook.com/p/Trenton-Flames-61579453380039/
