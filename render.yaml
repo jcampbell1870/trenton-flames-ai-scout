@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: trenton-flames-ai-scout-api
+    env: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: CORS_ORIGIN
+        value: https://jcampbell1870.github.io
+      - key: AI_RESEARCH_PROVIDER
+        sync: false
+      - key: AI_RESEARCH_API_KEY
+        sync: false

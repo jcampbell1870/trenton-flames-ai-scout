@@ -1,0 +1,27 @@
+{
+  "name": "trenton-flames-ai-scout",
+  "version": "1.0.0",
+  "description": "AI hockey prospect research agent for the Trenton Flames, with Render backend and GitHub Pages dashboard.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "build": "node scripts/build-frontend.js",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jcampbell1870/trenton-flames-ai-scout.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2"
+  }
+}
