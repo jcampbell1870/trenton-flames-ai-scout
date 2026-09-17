@@ -92,9 +92,20 @@ If `AI_RESEARCH_API_KEY` is missing, endpoint still returns useful structured de
 
 Manual setup in Render:
 
-1. Create a new Web Service (or Blueprint) from this repository.
+1. Create a new **Blueprint** or Node Web Service from this repository.
 2. Confirm environment variables (`AI_RESEARCH_PROVIDER`, `AI_RESEARCH_API_KEY`, `CORS_ORIGIN`).
 3. Deploy and note the service URL (`https://<service>.onrender.com`).
+
+### Troubleshooting: `pip install -r requirements.txt` / Python runtime error
+
+If Render logs show Python/Poetry and `pip install -r requirements.txt`, the service is configured as **Python** instead of this repository's Node service.
+
+Fix:
+
+1. In Render, open the service settings and set environment/runtime to **Node** (or recreate via **Blueprint** so `render.yaml` is applied).
+2. Ensure build command is `npm ci`.
+3. Ensure start command is `npm start`.
+4. Redeploy.
 
 ## GitHub Pages deployment
 
