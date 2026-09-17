@@ -10,7 +10,7 @@ services:
       - key: NODE_VERSION
         value: 20
       - key: CORS_ORIGIN
-        value: https://jcampbell1870.github.io
+        sync: false
       - key: AI_RESEARCH_PROVIDER
         sync: false
       - key: AI_RESEARCH_API_KEY

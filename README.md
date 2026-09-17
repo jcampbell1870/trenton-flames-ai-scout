@@ -51,11 +51,13 @@ This repository ships with clearly labelled **fictional demo prospects** for UI,
 See `.env.example`.
 
 - `PORT` server port (`Render` injects this automatically)
-- `CORS_ORIGIN` comma-separated allowed origins
+- `CORS_ORIGIN` comma-separated allowed browser origins
 - `AI_RESEARCH_PROVIDER` optional provider label
 - `AI_RESEARCH_API_KEY` optional secret for future live integrations
 
 Never commit secrets.
+
+> Note: GitHub Pages project sites share the host origin `https://<account>.github.io` across repositories. If you deploy the frontend as a Pages project site, CORS can only allow that host, not a repository subpath. Use a dedicated frontend domain if you need stricter browser-origin isolation.
 
 ## Local setup
 
@@ -159,7 +161,7 @@ The Pages frontend under `frontend/` includes:
 1. In Render, create a **Blueprint** or **Web Service** from this repository.
 2. Confirm Render detects `render.yaml`.
 3. Verify the service uses the Node runtime and the commands above.
-4. Set `CORS_ORIGIN` to your GitHub Pages origin if needed.
+4. Set `CORS_ORIGIN` to your allowed browser origin list. For GitHub Pages project sites this will be the shared `https://<account>.github.io` host, unless you use a dedicated custom domain.
 5. Optionally add `AI_RESEARCH_PROVIDER` and `AI_RESEARCH_API_KEY`.
 6. Deploy and note the resulting Render URL, for example `https://trenton-flames-ai-scout-api.onrender.com`.
 
@@ -171,7 +173,7 @@ Workflow: `.github/workflows/deploy-pages.yml`
 2. Add repository variable `RENDER_API_BASE_URL` with the deployed Render API URL.
 3. Push to `main` or manually trigger the Pages workflow.
 
-The workflow runs `npm ci`, builds `dist/`, uploads the Pages artifact, and deploys the static dashboard.
+The workflow runs `npm ci`, builds `dist/`, writes a `.nojekyll` file for Pages-safe static hosting, uploads the Pages artifact, and deploys the static dashboard.
 
 ## Tests included
 

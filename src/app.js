@@ -20,6 +20,67 @@ const parseCorsOrigins = (originsRaw) => {
 
 const allowedOrigins = parseCorsOrigins(process.env.CORS_ORIGIN);
 
+const rateLimitState = new Map();
+
+const isLoopbackAddress = (value) =>
+  ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes((value || '').trim());
+
+const hasTrustedSameOriginReferer = (req) => {
+  const referer = req.get('referer');
+  const host = req.get('host');
+
+  if (!referer || !host) {
+    return false;
+  }
+
+  try {
+    return new URL(referer).host === host;
+  } catch {
+    return false;
+  }
+};
+
+const requireTrustedApiOrigin = (req, res, next) => {
+  if (!req.path.startsWith('/api/') || req.path === '/api/health') {
+    return next();
+  }
+
+  const origin = req.get('origin');
+  if (origin && allowedOrigins.includes(origin)) {
+    return next();
+  }
+
+  if (
+    (!origin && isLoopbackAddress(req.ip)) ||
+    isLoopbackAddress(req.socket?.remoteAddress) ||
+    hasTrustedSameOriginReferer(req)
+  ) {
+    return next();
+  }
+
+  return res.status(403).json({
+    error: 'Trusted Origin header required for this API endpoint.'
+  });
+};
+
+const createRateLimiter = ({ windowMs, maxRequests }) => (req, res, next) => {
+  const key = req.ip || req.socket?.remoteAddress || 'unknown';
+  const now = Date.now();
+  const recentHits = (rateLimitState.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
+
+  if (recentHits.length >= maxRequests) {
+    return res.status(429).json({
+      error: 'Too many requests. Please retry shortly.'
+    });
+  }
+
+  recentHits.push(now);
+  rateLimitState.set(key, recentHits);
+  return next();
+};
+
+const frontendFallbackRateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 120 });
+
 const getHealthPayload = () => ({
   status: 'ok',
   service: 'trenton-flames-ai-scout-backend',
@@ -105,6 +166,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: '100kb' }));
+app.use(requireTrustedApiOrigin);
 app.use(express.static(frontendRoot));
 
 app.get('/health', (_req, res) => {
@@ -183,7 +245,7 @@ app.get('/api/prospects', (req, res) => {
 app.post('/api/query', handleProspectResearch);
 app.post('/api/research/prospect', handleProspectResearch);
 
-app.get(/^\/(?!api(?:\/|$)).*/, (_req, res, next) => {
+app.get(/^\/(?!api(?:\/|$)).*/, frontendFallbackRateLimiter, (_req, res, next) => {
   res.sendFile(path.join(frontendRoot, 'index.html'), (error) => {
     if (error) {
       next(error);

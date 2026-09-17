@@ -21,5 +21,6 @@ fs.writeFileSync(
  path.join(destination, 'config.js'),
  `window.TRENTON_FLAMES_CONFIG = ${serializedConfig};\n`
 );
+fs.writeFileSync(path.join(destination, '.nojekyll'), '');
 
 console.log('Frontend build complete: dist/');

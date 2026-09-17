@@ -9,9 +9,13 @@
       content="Trenton Flames AI-assisted prospect research dashboard for Nova Scotia Hockey League roster planning."
     />
     <script>
-      (function loadStylesheet() {
+      (function configureAssetBase() {
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
         const assetBase =
-          window.location.hostname === 'jcampbell1870.github.io' ? '/trenton-flames-ai-scout/' : '/';
+          window.location.hostname.endsWith('github.io') && pathSegments.length > 0
+            ? `/${pathSegments[0]}/`
+            : '/';
+        window.TRENTON_FLAMES_ASSET_BASE = assetBase;
         const stylesheet = document.createElement('link');
         stylesheet.rel = 'stylesheet';
         stylesheet.href = new URL('styles.css', `${window.location.origin}${assetBase}`).toString();
@@ -73,8 +77,7 @@
 
     <script>
       (function loadAppAssets() {
-        const assetBase =
-          window.location.hostname === 'jcampbell1870.github.io' ? '/trenton-flames-ai-scout/' : '/';
+        const assetBase = window.TRENTON_FLAMES_ASSET_BASE || '/';
         ['data/prospects.js', 'config.js', 'app.js'].forEach((assetPath) => {
           const script = document.createElement('script');
           script.src = new URL(assetPath, `${window.location.origin}${assetBase}`).toString();
