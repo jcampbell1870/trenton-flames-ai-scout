@@ -12,6 +12,21 @@ test('GET /health returns service status', async () => {
   assert.ok(response.body.timestamp);
 });
 
+test('GET /api/health returns the health payload alias', async () => {
+  const response = await request(app).get('/api/health').expect(200);
+
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.franchise, 'Trenton Flames');
+});
+
+test('GET /status returns backend status', async () => {
+  const response = await request(app).get('/status').expect(200);
+
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.demoMode, true);
+  assert.equal(response.body.provider, 'not-configured');
+});
+
 test('GET / serves the dashboard HTML', async () => {
   const response = await request(app).get('/').expect(200);
 
@@ -51,4 +66,13 @@ test('POST /api/research/prospect returns graceful demo response when no API key
   assert.equal(response.body.hasApiKeyConfigured, false);
   assert.ok(Array.isArray(response.body.results));
   assert.equal(response.body.results[0].isDemo, true);
+});
+
+test('POST /api/query mirrors the safe research response contract', async () => {
+  const response = await request(app).post('/api/query').send({ query: 'Trenton' }).expect(200);
+
+  assert.equal(response.body.demoMode, true);
+  assert.equal(response.body.hasApiKeyConfigured, false);
+  assert.ok(Array.isArray(response.body.results));
+  assert.match(response.body.source, /Demo fallback/);
 });

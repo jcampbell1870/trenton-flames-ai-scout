@@ -7,7 +7,9 @@ const state = {
   search: '',
   position: '',
   sort: 'desc',
-  demoMode: true
+  demoMode: true,
+  loading: true,
+  error: ''
 };
 
 const searchInput = document.querySelector('#search');
@@ -49,10 +51,17 @@ function getFilteredData() {
 
 function renderProspects() {
   const items = getFilteredData();
-  dataMode.textContent = `Viewing ${items.length} prospects (${state.source}).`;
-  sourceNote.textContent = state.demoMode
-    ? 'Demo mode: no verified live API source is configured.'
-    : 'API data loaded. Validate source confidence before decisions.';
+  if (state.loading) {
+    dataMode.textContent = 'Loading prospects…';
+    sourceNote.textContent = 'Checking the configured API and preparing safe demo fallback data.';
+  } else {
+    dataMode.textContent = `Viewing ${items.length} prospects (${state.source}).`;
+    sourceNote.textContent = state.error
+      ? `${state.error} Showing clearly labelled demo data instead.`
+      : state.demoMode
+        ? 'Demo mode: no verified live API source is configured.'
+        : 'API data loaded. Validate source confidence before decisions.';
+  }
 
   if (items.length === 0) {
     list.innerHTML = '<article class="panel">No prospects match this filter.</article>';
@@ -109,9 +118,13 @@ async function tryLoadApiData() {
     state.prospects = body.data;
     state.source = body.source || `Render/API data (${endpoint})`;
     state.demoMode = Boolean(body.demoMode);
-  } catch (_error) {
+    state.error = '';
+  } catch (error) {
     state.source = 'seeded local demo data (API unavailable)';
     state.demoMode = true;
+    state.error = `API unavailable at ${endpoint}: ${error.message}`;
+  } finally {
+    state.loading = false;
   }
 
   renderProspects();

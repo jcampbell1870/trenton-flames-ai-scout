@@ -1,45 +1,69 @@
 # Trenton Flames AI Scout
 
-AI-assisted hockey prospect research dashboard for the **Trenton Flames** (Trenton, Nova Scotia, Canada), intended for future **Nova Scotia Hockey League** roster-building.
+AI-assisted hockey prospect research dashboard for the **Trenton Flames** in **Trenton, Nova Scotia, Canada**, built for future **Nova Scotia Hockey League** scouting workflows.
 
-Architecture mirrors the Nampa Devils agent pattern:
+This repository mirrors the useful Nampa Devils architecture:
 
-- **Backend (Render):** Node.js/Express API with health/status, prospect listing, and safe research endpoint
-- **Frontend (GitHub Pages):** static scouting dashboard with API integration and demo fallback
+- **Backend (Render):** Node.js/Express API with health, status, prospects, and safe research/query responses
+- **Frontend (GitHub Pages):** static dashboard with flame red/orange/charcoal branding, filters, and demo fallback
+- **Build flow:** copy `frontend/` to `dist/` for Pages deployment
+- **Tests:** Node native test runner plus `supertest`
+
+## Why Render failed before
+
+Render tried to deploy commit `ad79cec8e78c752a9490c8893434dbe9199846f0` from `main` while the repository only contained a minimal `README.md`, `LICENSE`, and `.gitignore`.
+
+Because there was no `package.json`, `src/server.js`, or `render.yaml`, Render did **not** detect a Node application. It fell back to Python defaults and ran:
+
+```bash
+pip install -r requirements.txt
+```
+
+That failed because this project is a Node/Express application and does not use `requirements.txt`.
+
+This PR fixes that by adding:
+
+- `package.json` and lockfile
+- `src/server.js` entrypoint that listens on `process.env.PORT`
+- explicit `render.yaml` with `env: node`, `buildCommand: npm install`, and `startCommand: npm start`
+- deployable frontend, tests, and Pages workflow
 
 ## Project structure
 
-- `src/` backend service (`src/server.js` entrypoint)
-- `frontend/` static dashboard files
-- `scripts/build-frontend.js` static build/copy script
+- `src/` backend service and demo scouting data
+- `frontend/` static dashboard assets and local demo fallback data
+- `scripts/build-frontend.js` frontend copy/build step
 - `test/` API tests
 - `render.yaml` Render web service configuration
 - `.github/workflows/deploy-pages.yml` GitHub Pages deployment workflow
+- `.env.example` example environment variables only; no secrets
 
-## Important demo-data disclaimer
+## Demo data disclaimer
 
-This repository ships with clearly labelled **fictional demo prospects** for UI and workflow validation.
-Do not treat demo profiles as verified real-world player records.
+This repository ships with clearly labelled **fictional demo prospects** for UI, API, and deployment validation.
+
+- Demo profiles are **not** verified real players.
+- Demo output must **not** be treated as validated scouting intelligence.
+- Any operational use should be verified through trusted league-approved sources and normal scouting review.
 
 ## Environment variables
 
-See `.env.example`:
+See `.env.example`.
 
-- `PORT` server port (Render injects `PORT` automatically)
+- `PORT` server port (`Render` injects this automatically)
 - `CORS_ORIGIN` comma-separated allowed origins
-- `AI_RESEARCH_PROVIDER` optional provider identifier label
-- `AI_RESEARCH_API_KEY` optional secret key for future live integrations
+- `AI_RESEARCH_PROVIDER` optional provider label
+- `AI_RESEARCH_API_KEY` optional secret for future live integrations
 
 Never commit secrets.
 
 ## Local setup
 
+Install dependencies:
+
 ```bash
 npm install
-npm run dev
 ```
-
-Backend: `http://localhost:3000`
 
 Run tests:
 
@@ -47,70 +71,118 @@ Run tests:
 npm test
 ```
 
-Build frontend artifact:
+Start the Render-style web service locally:
+
+```bash
+npm start
+```
+
+Optional development watch mode:
+
+```bash
+npm run dev
+```
+
+Build the static frontend artifact:
 
 ```bash
 npm run build
 ```
 
-The build outputs static files into `dist/`.
+The frontend build outputs static files into `dist/`.
 
 ## API endpoints
 
-### `GET /health`
-Service health and franchise metadata.
+### `GET /health` and `GET /api/health`
 
-### `GET /api/status`
-Backend status with `demoMode` and provider configuration state.
+Health payload with service, franchise, league, and timestamp metadata.
+
+### `GET /status` and `GET /api/status`
+
+Status payload exposing whether the service is currently in demo mode and whether an AI research provider label is configured.
 
 ### `GET /api/prospects`
-Returns seeded prospect list with filters:
 
-- `search` text match
-- `position` exact position
+Returns clearly labelled Trenton Flames demo prospects with:
+
+- `search` text filtering
+- `position` exact filtering
 - `sort=asc|desc` fit-score sorting
+- `demoMode`, source, and disclaimer-friendly metadata
 
-### `POST /api/research/prospect`
-Safe research response format that accepts query input and returns structured scouting records.
+### `POST /api/query` and `POST /api/research/prospect`
 
-Example request:
+Safe research/query response contract that accepts JSON input and returns structured scouting records.
+
+Example:
 
 ```bash
-curl -X POST http://localhost:3000/api/research/prospect \
+curl -X POST http://localhost:3000/api/query \
   -H "Content-Type: application/json" \
   -d '{"query":"Trenton","position":"LD"}'
 ```
 
-If `AI_RESEARCH_API_KEY` is missing, endpoint still returns useful structured demo results with transparent `demoMode` and source/disclaimer fields.
+If `AI_RESEARCH_API_KEY` is not configured, the API still returns a transparent demo response with:
 
-## Render deployment
+- `demoMode: true`
+- `hasApiKeyConfigured: false`
+- explicit source wording showing demo fallback
+- a reminder that results must be validated before decisions
 
-`render.yaml` defines a Node web service:
+## Frontend dashboard
 
-- Build command: `npm ci`
-- Start command: `npm start`
+The Pages frontend under `frontend/` includes:
 
-Manual setup in Render:
+- responsive Trenton Flames branding
+- prospect search and filters
+- loading, empty, and API-fallback error states
+- scouting cards with fit score, confidence, source, notes, and references
+- clear demo-data and verification disclaimers
 
-1. Create a new Web Service (or Blueprint) from this repository.
-2. Confirm environment variables (`AI_RESEARCH_PROVIDER`, `AI_RESEARCH_API_KEY`, `CORS_ORIGIN`).
-3. Deploy and note the service URL (`https://<service>.onrender.com`).
+### API base URL configuration
 
-## GitHub Pages deployment
+- `frontend/config.js` defaults to an empty `apiBaseUrl`, which makes local/root deployments use relative `/api`
+- `frontend/config.example.js` shows how to point at a hosted Render API
+- the Pages workflow injects `RENDER_API_BASE_URL` into `dist/config.js` at build time
+
+## Render deployment setup
+
+`render.yaml` explicitly configures a **Node** web service so Render does not fall back to Python:
+
+- `env: node`
+- `buildCommand: npm install`
+- `startCommand: npm start`
+- `NODE_VERSION=20`
+
+### Manual Render steps
+
+1. In Render, create a **Blueprint** or **Web Service** from this repository.
+2. Confirm Render detects `render.yaml`.
+3. Verify the service uses the Node runtime and the commands above.
+4. Set `CORS_ORIGIN` to your GitHub Pages origin if needed.
+5. Optionally add `AI_RESEARCH_PROVIDER` and `AI_RESEARCH_API_KEY`.
+6. Deploy and note the resulting Render URL, for example `https://trenton-flames-ai-scout-api.onrender.com`.
+
+## GitHub Pages setup
 
 Workflow: `.github/workflows/deploy-pages.yml`
 
-Repository setup:
+1. In GitHub, enable **Settings → Pages → Build and deployment → GitHub Actions**.
+2. Add repository variable `RENDER_API_BASE_URL` with the deployed Render API URL.
+3. Push to `main` or manually trigger the Pages workflow.
 
-1. Enable **Settings → Pages → Build and deployment → GitHub Actions**.
-2. Add repository variable `RENDER_API_BASE_URL` with your Render URL.
-3. Push to `main` (or run workflow manually).
+The workflow runs `npm ci`, builds `dist/`, uploads the Pages artifact, and deploys the static dashboard.
 
-The build script injects `API_BASE_URL` into `dist/config.js` when `RENDER_API_BASE_URL` is set.
-Without it, frontend defaults to relative `/api` and falls back to local demo data if unavailable.
+## Tests included
+
+- health endpoint coverage
+- status alias coverage
+- prospects endpoint coverage
+- query/research validation coverage
+- demo-mode behavior coverage
 
 ## Operational notes
 
-- Review confidence and source labels before using any output operationally.
-- Validate prospects through trusted scouting workflows, consent/privacy safeguards, and league governance.
-- The current research endpoint is intentionally safe/demo-first and does not claim verified live player intelligence.
+- Review confidence, notes, and source labels before using any output.
+- The current research endpoints are safe template endpoints, not a verified live scouting intelligence system.
+- If you later add a real provider, keep the current transparent demo fallback and do not present unverified outputs as confirmed player facts.

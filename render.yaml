@@ -3,7 +3,7 @@ services:
     name: trenton-flames-ai-scout-api
     env: node
     plan: free
-    buildCommand: npm ci
+    buildCommand: npm install
     startCommand: npm start
     autoDeploy: true
     envVars:

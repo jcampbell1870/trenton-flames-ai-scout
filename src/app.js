@@ -20,6 +20,78 @@ const parseCorsOrigins = (originsRaw) => {
 
 const allowedOrigins = parseCorsOrigins(process.env.CORS_ORIGIN);
 
+const getHealthPayload = () => ({
+  status: 'ok',
+  service: 'trenton-flames-ai-scout-backend',
+  franchise: 'Trenton Flames',
+  location: 'Trenton, Nova Scotia, Canada',
+  league: 'Nova Scotia Hockey League',
+  timestamp: new Date().toISOString()
+});
+
+const getStatusPayload = () => ({
+  status: 'ok',
+  demoMode: !process.env.AI_RESEARCH_API_KEY,
+  provider: process.env.AI_RESEARCH_PROVIDER || 'not-configured'
+});
+
+const handleProspectResearch = (req, res) => {
+  const { query, position } = req.body ?? {};
+
+  if (typeof query !== 'string' || !query.trim()) {
+    return res.status(400).json({
+      error: 'query is required and must be a non-empty string.'
+    });
+  }
+
+  const normalizedQuery = query.trim();
+  const normalizedPosition = typeof position === 'string' ? position.trim().toUpperCase() : null;
+  const provider = process.env.AI_RESEARCH_PROVIDER || 'not-configured';
+  const hasApiKeyConfigured = Boolean(process.env.AI_RESEARCH_API_KEY);
+
+  const matched = prospects
+    .filter((prospect) => {
+      if (normalizedPosition && prospect.position !== normalizedPosition) {
+        return false;
+      }
+
+      const haystack = [prospect.name, prospect.position, prospect.location, prospect.currentLeagueTeam]
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(normalizedQuery.toLowerCase());
+    })
+    .slice(0, 5);
+
+  return res.json({
+    query: normalizedQuery,
+    position: normalizedPosition,
+    provider,
+    hasApiKeyConfigured,
+    demoMode: !hasApiKeyConfigured,
+    source: hasApiKeyConfigured
+      ? 'Live provider integration not enabled in this template; returning transparent demo-format response.'
+      : 'Demo fallback: no AI research API key configured.',
+    disclaimer:
+      'Results are sample scouting outputs and must be validated against trusted league-approved sources before decisions.',
+    results: matched.map((prospect) => ({
+      id: prospect.id,
+      name: prospect.name,
+      position: prospect.position,
+      age: prospect.age,
+      location: prospect.location,
+      team: prospect.currentLeagueTeam,
+      fitScore: prospect.fitScore,
+      confidence: prospect.confidence,
+      strengths: prospect.strengths,
+      developmentPriorities: prospect.developmentPriorities,
+      source: prospect.source,
+      notes: prospect.notes,
+      isDemo: prospect.isDemo
+    }))
+  });
+};
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -36,22 +108,19 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.static(frontendRoot));
 
 app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'trenton-flames-ai-scout-backend',
-    franchise: 'Trenton Flames',
-    location: 'Trenton, Nova Scotia, Canada',
-    league: 'Nova Scotia Hockey League',
-    timestamp: new Date().toISOString()
-  });
+  res.json(getHealthPayload());
+});
+
+app.get('/api/health', (_req, res) => {
+  res.json(getHealthPayload());
+});
+
+app.get('/status', (_req, res) => {
+  res.json(getStatusPayload());
 });
 
 app.get('/api/status', (_req, res) => {
-  res.json({
-    status: 'ok',
-    demoMode: !process.env.AI_RESEARCH_API_KEY,
-    provider: process.env.AI_RESEARCH_PROVIDER || 'not-configured'
-  });
+  res.json(getStatusPayload());
 });
 
 app.get('/api/prospects', (req, res) => {
@@ -111,62 +180,8 @@ app.get('/api/prospects', (req, res) => {
   });
 });
 
-app.post('/api/research/prospect', (req, res) => {
-  const { query, position } = req.body ?? {};
-
-  if (typeof query !== 'string' || !query.trim()) {
-    return res.status(400).json({
-      error: 'query is required and must be a non-empty string.'
-    });
-  }
-
-  const normalizedQuery = query.trim();
-  const normalizedPosition = typeof position === 'string' ? position.trim().toUpperCase() : null;
-  const provider = process.env.AI_RESEARCH_PROVIDER || 'not-configured';
-  const hasApiKeyConfigured = Boolean(process.env.AI_RESEARCH_API_KEY);
-
-  const matched = prospects
-    .filter((prospect) => {
-      if (normalizedPosition && prospect.position !== normalizedPosition) {
-        return false;
-      }
-
-      const haystack = [prospect.name, prospect.position, prospect.location, prospect.currentLeagueTeam]
-        .join(' ')
-        .toLowerCase();
-
-      return haystack.includes(normalizedQuery.toLowerCase());
-    })
-    .slice(0, 5);
-
-  return res.json({
-    query: normalizedQuery,
-    position: normalizedPosition,
-    provider,
-    hasApiKeyConfigured,
-    demoMode: !hasApiKeyConfigured,
-    source: hasApiKeyConfigured
-      ? 'Live provider integration not enabled in this template; returning transparent demo-format response.'
-      : 'Demo fallback: no AI research API key configured.',
-    disclaimer:
-      'Results are sample scouting outputs and must be validated against trusted league-approved sources before decisions.',
-    results: matched.map((prospect) => ({
-      id: prospect.id,
-      name: prospect.name,
-      position: prospect.position,
-      age: prospect.age,
-      location: prospect.location,
-      team: prospect.currentLeagueTeam,
-      fitScore: prospect.fitScore,
-      confidence: prospect.confidence,
-      strengths: prospect.strengths,
-      developmentPriorities: prospect.developmentPriorities,
-      source: prospect.source,
-      notes: prospect.notes,
-      isDemo: prospect.isDemo
-    }))
-  });
-});
+app.post('/api/query', handleProspectResearch);
+app.post('/api/research/prospect', handleProspectResearch);
 
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
