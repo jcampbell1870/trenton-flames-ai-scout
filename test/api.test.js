@@ -27,6 +27,14 @@ test('GET /status returns backend status', async () => {
   assert.equal(response.body.provider, 'not-configured');
 });
 
+test('GET /api/status returns backend status alias', async () => {
+  const response = await request(app).get('/api/status').expect(200);
+
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.demoMode, true);
+  assert.equal(response.body.provider, 'not-configured');
+});
+
 test('GET / serves the dashboard HTML', async () => {
   const response = await request(app).get('/').expect(200);
 

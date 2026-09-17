@@ -29,6 +29,31 @@ function renderPositionOptions(items) {
   });
 }
 
+function resetPositionOptions(items) {
+  positionSelect.textContent = '';
+  const allOption = document.createElement('option');
+  allOption.value = '';
+  allOption.textContent = 'All positions';
+  positionSelect.append(allOption);
+  renderPositionOptions(items);
+  positionSelect.value = state.position;
+}
+
+function appendLabeledText(container, label, value) {
+  const strong = document.createElement('strong');
+  strong.textContent = `${label}:`;
+  container.append(strong, document.createTextNode(` ${value}`));
+}
+
+function toSafeExternalUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.href);
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
 function getFilteredData() {
   let items = [...state.prospects];
 
@@ -64,41 +89,123 @@ function renderProspects() {
   }
 
   if (items.length === 0) {
-    list.innerHTML = '<article class="panel">No prospects match this filter.</article>';
+    list.textContent = '';
+    const emptyState = document.createElement('article');
+    emptyState.className = 'panel';
+    emptyState.textContent = 'No prospects match this filter.';
+    list.append(emptyState);
     return;
   }
 
-  list.innerHTML = items
-    .map((item) => {
-      const sources = (item.sourceUrls || [])
-        .map((url) => `<li><a href="${url}" target="_blank" rel="noreferrer">${url}</a></li>`)
-        .join('');
+  list.textContent = '';
 
-      return `
-        <article class="card">
-          <h3>${item.name} (${item.position})</h3>
-          <p class="meta">${item.currentLeagueTeam}</p>
-          <p class="meta">${item.location} · Age ${item.age}</p>
-          <p class="meta">${item.height || 'Height unknown'} · Shoots ${item.shoots || 'Unknown'}</p>
-          <span class="fit-pill">Trenton Fit Score: ${item.fitScore}</span>
-          <div class="score-grid">
-            <div>Confidence: <strong>${Math.round((item.confidence || 0) * 100)}%</strong></div>
-            <div>League: <strong>${item.league || 'Unknown'}</strong></div>
-          </div>
-          <span class="tag">${item.isDemo ? 'Demo profile' : 'Research profile'}</span>
-          <details>
-            <summary>Scouting details</summary>
-            <p><strong>Strengths:</strong> ${(item.strengths || []).join(', ')}</p>
-            <p><strong>Development priorities:</strong> ${(item.developmentPriorities || []).join(', ')}</p>
-            <p><strong>Source:</strong> ${item.source || 'Unspecified'}</p>
-            <p><strong>Notes:</strong> ${item.notes || 'None'}</p>
-            <strong>References:</strong>
-            <ul>${sources || '<li>No external references in demo mode.</li>'}</ul>
-          </details>
-        </article>
-      `;
-    })
-    .join('');
+  items.forEach((item) => {
+    const article = document.createElement('article');
+    article.className = 'card';
+
+    const heading = document.createElement('h3');
+    heading.textContent = `${item.name} (${item.position})`;
+    article.append(heading);
+
+    const team = document.createElement('p');
+    team.className = 'meta';
+    team.textContent = item.currentLeagueTeam;
+    article.append(team);
+
+    const location = document.createElement('p');
+    location.className = 'meta';
+    location.textContent = `${item.location} · Age ${item.age}`;
+    article.append(location);
+
+    const measurements = document.createElement('p');
+    measurements.className = 'meta';
+    measurements.textContent = `${item.height || 'Height unknown'} · Shoots ${item.shoots || 'Unknown'}`;
+    article.append(measurements);
+
+    const fitPill = document.createElement('span');
+    fitPill.className = 'fit-pill';
+    fitPill.textContent = `Trenton Fit Score: ${item.fitScore}`;
+    article.append(fitPill);
+
+    const scoreGrid = document.createElement('div');
+    scoreGrid.className = 'score-grid';
+
+    const confidence = document.createElement('div');
+    const confidenceLabel = document.createTextNode('Confidence: ');
+    const confidenceValue = document.createElement('strong');
+    confidenceValue.textContent = `${Math.round((item.confidence || 0) * 100)}%`;
+    confidence.append(confidenceLabel, confidenceValue);
+
+    const league = document.createElement('div');
+    const leagueLabel = document.createTextNode('League: ');
+    const leagueValue = document.createElement('strong');
+    leagueValue.textContent = item.league || 'Unknown';
+    league.append(leagueLabel, leagueValue);
+
+    scoreGrid.append(confidence, league);
+    article.append(scoreGrid);
+
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = item.isDemo ? 'Demo profile' : 'Research profile';
+    article.append(tag);
+
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'Scouting details';
+    details.append(summary);
+
+    const strengths = document.createElement('p');
+    appendLabeledText(strengths, 'Strengths', (item.strengths || []).join(', '));
+    details.append(strengths);
+
+    const priorities = document.createElement('p');
+    appendLabeledText(
+      priorities,
+      'Development priorities',
+      (item.developmentPriorities || []).join(', ')
+    );
+    details.append(priorities);
+
+    const source = document.createElement('p');
+    appendLabeledText(source, 'Source', item.source || 'Unspecified');
+    details.append(source);
+
+    const notes = document.createElement('p');
+    appendLabeledText(notes, 'Notes', item.notes || 'None');
+    details.append(notes);
+
+    const referencesLabel = document.createElement('strong');
+    referencesLabel.textContent = 'References:';
+    details.append(referencesLabel);
+
+    const referencesList = document.createElement('ul');
+    if ((item.sourceUrls || []).length === 0) {
+      const reference = document.createElement('li');
+      reference.textContent = 'No external references in demo mode.';
+      referencesList.append(reference);
+    } else {
+      (item.sourceUrls || []).forEach((url) => {
+        const reference = document.createElement('li');
+        const safeUrl = toSafeExternalUrl(url);
+        if (safeUrl) {
+          const link = document.createElement('a');
+          link.href = safeUrl;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          link.textContent = safeUrl;
+          reference.append(link);
+        } else {
+          reference.textContent = `Invalid reference omitted: ${url}`;
+        }
+        referencesList.append(reference);
+      });
+    }
+
+    details.append(referencesList);
+    article.append(details);
+    list.append(article);
+  });
 }
 
 async function tryLoadApiData() {
@@ -118,11 +225,13 @@ async function tryLoadApiData() {
     state.prospects = body.data;
     state.source = body.source || `Render/API data (${endpoint})`;
     state.demoMode = Boolean(body.demoMode);
+    resetPositionOptions(state.prospects);
     state.error = '';
   } catch (error) {
     state.source = 'seeded local demo data (API unavailable)';
     state.demoMode = true;
     state.error = `API unavailable at ${endpoint}: ${error.message}`;
+    resetPositionOptions(state.prospects);
   } finally {
     state.loading = false;
   }
@@ -145,6 +254,6 @@ sortSelect.addEventListener('change', (event) => {
   renderProspects();
 });
 
-renderPositionOptions(state.prospects);
+resetPositionOptions(state.prospects);
 renderProspects();
 void tryLoadApiData();
