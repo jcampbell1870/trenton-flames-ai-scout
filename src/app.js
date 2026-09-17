@@ -63,23 +63,7 @@ const requireTrustedApiOrigin = (req, res, next) => {
   });
 };
 
-const createRateLimiter = ({ windowMs, maxRequests }) => (req, res, next) => {
-  const key = req.ip || req.socket?.remoteAddress || 'unknown';
-  const now = Date.now();
-  const recentHits = (rateLimitState.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
 
-  if (recentHits.length >= maxRequests) {
-    return res.status(429).json({
-      error: 'Too many requests. Please retry shortly.'
-    });
-  }
-
-  recentHits.push(now);
-  rateLimitState.set(key, recentHits);
-  return next();
-};
-
-const frontendFallbackRateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 120 });
 
 const getHealthPayload = () => ({
   status: 'ok',
@@ -95,6 +79,23 @@ const getStatusPayload = () => ({
   demoMode: !process.env.AI_RESEARCH_API_KEY,
   provider: process.env.AI_RESEARCH_PROVIDER || 'not-configured'
 });
+
+const applyRateLimit = (req, res, { windowMs, maxRequests }) => {
+  const key = req.ip || req.socket?.remoteAddress || 'unknown';
+  const now = Date.now();
+  const recentHits = (rateLimitState.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
+
+  if (recentHits.length >= maxRequests) {
+    res.status(429).json({
+      error: 'Too many requests. Please retry shortly.'
+    });
+    return false;
+  }
+
+  recentHits.push(now);
+  rateLimitState.set(key, recentHits);
+  return true;
+};
 
 const handleProspectResearch = (req, res) => {
   const { query, position } = req.body ?? {};
@@ -186,9 +187,13 @@ app.get('/api/status', (_req, res) => {
 });
 
 app.get('/api/prospects', (req, res) => {
-  const { search, position, sort = 'desc' } = req.query;
+  const { search, sort = 'desc' } = req.query;
+  const normalizedPosition =
+    typeof req.query.position === 'string' && req.query.position.trim()
+      ? req.query.position.trim().toUpperCase()
+      : null;
 
-  if (position && !positions.includes(position)) {
+  if (normalizedPosition && !positions.includes(normalizedPosition)) {
     return res.status(400).json({
       error: 'Invalid position filter',
       allowedPositions: positions
@@ -203,8 +208,8 @@ app.get('/api/prospects', (req, res) => {
 
   let filtered = prospects;
 
-  if (position) {
-    filtered = filtered.filter((prospect) => prospect.position === position);
+  if (normalizedPosition) {
+    filtered = filtered.filter((prospect) => prospect.position === normalizedPosition);
   }
 
   if (typeof search === 'string' && search.trim()) {
@@ -233,7 +238,7 @@ app.get('/api/prospects', (req, res) => {
     count: sorted.length,
     filters: {
       search: search || '',
-      position: position || null,
+      position: normalizedPosition,
       sort
     },
     demoMode: true,
@@ -245,7 +250,19 @@ app.get('/api/prospects', (req, res) => {
 app.post('/api/query', handleProspectResearch);
 app.post('/api/research/prospect', handleProspectResearch);
 
-app.get(/^\/(?!api(?:\/|$)).*/, frontendFallbackRateLimiter, (_req, res, next) => {
+app.get(/^\/(?!api(?:\/|$)).*/, (req, res, next) => {
+  if (path.extname(req.path)) {
+    return next();
+  }
+
+  if (!(req.accepts('html') || '').includes('html')) {
+    return next();
+  }
+
+  if (!applyRateLimit(req, res, { windowMs: 60_000, maxRequests: 120 })) {
+    return;
+  }
+
   res.sendFile(path.join(frontendRoot, 'index.html'), (error) => {
     if (error) {
       next(error);

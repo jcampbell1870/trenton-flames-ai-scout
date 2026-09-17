@@ -11,10 +11,9 @@
     <script>
       (function configureAssetBase() {
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        const isGithubPagesHost = /^([a-z0-9-]+)\.github\.io$/i.test(window.location.hostname);
         const assetBase =
-          window.location.hostname.endsWith('github.io') && pathSegments.length > 0
-            ? `/${pathSegments[0]}/`
-            : '/';
+          isGithubPagesHost && pathSegments.length > 0 ? `/${pathSegments[0]}/` : '/';
         window.TRENTON_FLAMES_ASSET_BASE = assetBase;
         const stylesheet = document.createElement('link');
         stylesheet.rel = 'stylesheet';

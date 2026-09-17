@@ -35,6 +35,24 @@ test('GET /api/status returns backend status alias', async () => {
   assert.equal(response.body.provider, 'not-configured');
 });
 
+test('GET /api/status allows configured cross-origin browser requests', async () => {
+  const response = await request(app)
+    .get('/api/status')
+    .set('Origin', 'http://localhost:3000')
+    .expect(200);
+
+  assert.equal(response.body.status, 'ok');
+});
+
+test('GET /api/status rejects untrusted origins', async () => {
+  const response = await request(app)
+    .get('/api/status')
+    .set('Origin', 'https://untrusted.example')
+    .expect(403);
+
+  assert.match(response.body.error, /(CORS origin denied|Trusted Origin header required)/);
+});
+
 test('GET / serves the dashboard HTML', async () => {
   const response = await request(app).get('/').expect(200);
 
@@ -49,6 +67,12 @@ test('GET /dashboard serves the dashboard HTML fallback', async () => {
   assert.match(response.text, /Trenton Flames AI Scout/);
 });
 
+test('GET /missing.js does not get the HTML fallback', async () => {
+  const response = await request(app).get('/missing.js').expect(404);
+
+  assert.equal(response.body.error, 'Not found');
+});
+
 test('GET /api/prospects returns sorted prospect list in demo mode', async () => {
   const response = await request(app).get('/api/prospects').expect(200);
 
@@ -56,6 +80,13 @@ test('GET /api/prospects returns sorted prospect list in demo mode', async () =>
   assert.ok(Array.isArray(response.body.data));
   assert.ok(response.body.data.length >= 1);
   assert.equal(response.body.data[0].fitScore >= response.body.data.at(-1).fitScore, true);
+});
+
+test('GET /api/prospects normalizes lowercase position filters', async () => {
+  const response = await request(app).get('/api/prospects?position=ld').expect(200);
+
+  assert.equal(response.body.filters.position, 'LD');
+  assert.ok(response.body.data.every((prospect) => prospect.position === 'LD'));
 });
 
 test('GET /api/prospects rejects invalid position filter', async () => {
