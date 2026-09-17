@@ -1,0 +1,69 @@
+const prospects = [
+  {
+    id: 'tf-demo-001',
+    name: 'Declan Fraser (Demo)',
+    position: 'C',
+    age: 18,
+    birthYear: 2008,
+    height: '6\'0"',
+    shoots: 'L',
+    location: 'New Glasgow, Nova Scotia, Canada',
+    currentLeagueTeam: 'North Shore U18 (Demo)',
+    league: 'Nova Scotia Hockey League - Sample Data',
+    strengths: ['Two-way positioning', 'Faceoff detail', 'Transition support'],
+    developmentPriorities: ['First-step acceleration', 'Shot deception'],
+    fitScore: 82,
+    confidence: 0.73,
+    source: 'Demo profile (fictional sample for UI/testing)',
+    notes:
+      'Sample prospect profile for workflow testing. This is not a verified real-world player profile.',
+    isDemo: true,
+    sourceUrls: ['https://example.org/demo/declan-fraser']
+  },
+  {
+    id: 'tf-demo-002',
+    name: 'Mason LeBlanc (Demo)',
+    position: 'RW',
+    age: 19,
+    birthYear: 2007,
+    height: '5\'11"',
+    shoots: 'R',
+    location: 'Pictou County, Nova Scotia, Canada',
+    currentLeagueTeam: 'Harbour Kings Jr. (Demo)',
+    league: 'Nova Scotia Hockey League - Sample Data',
+    strengths: ['Forecheck pressure', 'Puck retrievals', 'Net-front timing'],
+    developmentPriorities: ['Defensive reads low-zone', 'Penalty discipline'],
+    fitScore: 79,
+    confidence: 0.69,
+    source: 'Demo profile (fictional sample for UI/testing)',
+    notes:
+      'Demo-only profile used when external data sources are unavailable. Treat as illustrative, not verified.',
+    isDemo: true,
+    sourceUrls: ['https://example.org/demo/mason-leblanc']
+  },
+  {
+    id: 'tf-demo-003',
+    name: 'Avery MacDonald (Demo)',
+    position: 'LD',
+    age: 17,
+    birthYear: 2009,
+    height: '6\'2"',
+    shoots: 'L',
+    location: 'Trenton, Nova Scotia, Canada',
+    currentLeagueTeam: 'East River Selects (Demo)',
+    league: 'Nova Scotia Hockey League - Sample Data',
+    strengths: ['Gap control', 'First-pass execution', 'Net-front leverage'],
+    developmentPriorities: ['Lateral quickness', 'Puck poise under pressure'],
+    fitScore: 84,
+    confidence: 0.76,
+    source: 'Demo profile (fictional sample for UI/testing)',
+    notes:
+      'Created for demonstration of the Trenton Flames scouting dashboard and API contract.',
+    isDemo: true,
+    sourceUrls: ['https://example.org/demo/avery-macdonald']
+  }
+];
+
+module.exports = {
+  prospects
+};

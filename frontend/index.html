@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trenton Flames AI Scout</title>
+    <meta
+      name="description"
+      content="Trenton Flames AI-assisted prospect research dashboard for Nova Scotia Hockey League roster planning."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <p class="eyebrow">Trenton Flames Hockey Operations</p>
+      <h1>Trenton Flames AI Scout</h1>
+      <p>
+        AI-assisted prospect research dashboard for the future Trenton Flames franchise in Trenton,
+        Nova Scotia, Canada.
+      </p>
+      <p class="subtle">Intended league: Nova Scotia Hockey League.</p>
+    </header>
+
+    <main>
+      <section class="panel controls" aria-label="Prospect filters">
+        <div>
+          <label for="search">Search prospects</label>
+          <input id="search" type="search" placeholder="Name, team, location, position" />
+        </div>
+        <div>
+          <label for="position">Position</label>
+          <select id="position">
+            <option value="">All positions</option>
+          </select>
+        </div>
+        <div>
+          <label for="sort">Sort fit score</label>
+          <select id="sort">
+            <option value="desc">Highest fit first</option>
+            <option value="asc">Lowest fit first</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="panel status" aria-live="polite">
+        <strong id="data-mode">Loading prospects…</strong>
+        <p id="source-note" class="subtle"></p>
+      </section>
+
+      <section id="prospect-list" class="cards" aria-label="Prospect list"></section>
+
+      <section class="panel disclaimer">
+        <h2>Data and verification notice</h2>
+        <p>
+          Profiles labelled as <strong>Demo</strong> are fictional sample prospects for interface and
+          workflow testing. They are not verified real-world player records.
+        </p>
+        <p>
+          Any live scouting conclusions should be verified with trusted sources, in-person scouting,
+          consent/privacy safeguards, and league policy checks.
+        </p>
+      </section>
+    </main>
+
+    <script src="./data/prospects.js"></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
